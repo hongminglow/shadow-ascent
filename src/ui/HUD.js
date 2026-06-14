@@ -35,6 +35,7 @@ export class HUD {
     this.root = root;
     this.$ = (s) => root.querySelector(s);
 
+    this.crosshairEl = this.$('.crosshair');
     this.alarmEl = this.$('.alarm');
     this.vignette = this.$('.damage-vignette');
     this.scopeEl = this.$('.scope');
@@ -86,6 +87,12 @@ export class HUD {
     }
   }
 
+  // Brief "spotted" flash when a guard engages — without the full floor-alarm siren.
+  spotted() {
+    this.alertEl.classList.add('on');
+    this._alertTimer = 1.0;
+  }
+
   hitMarker() {
     this.hit.classList.remove('show');
     void this.hit.offsetWidth; // restart animation
@@ -97,7 +104,10 @@ export class HUD {
     this._vignetteTimer = 0.4;
   }
 
-  setScope(on) { this.scopeEl.classList.toggle('on', on); }
+  setScope(on) {
+    this.scopeEl.classList.toggle('on', on);
+    this.crosshairEl.classList.toggle('hidden', on); // scope has its own reticle
+  }
 
   setPrompt(text) {
     if (!text) {

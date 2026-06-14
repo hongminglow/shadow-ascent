@@ -70,13 +70,15 @@ export class Guard {
 
   _becomeAlert(hard = false) {
     if (this.state === 'dead') return;
-    const wasCalm = this.state === 'patrol';
+    const wasEngaged = this.state === 'alert';
     this.state = 'alert';
     this.detection = 1;
     this.lastKnown = { x: this.game.player.position.x, z: this.game.player.position.z };
-    if (hard || wasCalm) {
-      this.game.raiseAlarm(this.lastKnown);
-      this.reactionTimer = randRange(0.25, 0.5);
+    if (!wasEngaged) {
+      // A guard spotting you engages itself and shouts to NEARBY guards only —
+      // not the whole floor. (Floor-wide alarms are reserved for cameras/drones.)
+      this.reactionTimer = hard ? 0.15 : randRange(0.3, 0.55);
+      this.game.onGuardEngage(this);
     }
   }
 
@@ -121,7 +123,7 @@ export class Guard {
       player.crouchVisibility
     );
 
-    if (vis.seen && player.alive) {
+    if (vis.seen && player.alive && game.spawnGrace <= 0) {
       // Detection builds faster the closer the player is.
       const rate = 1.6 + (1 - vis.dist / VISION.range) * 2.2;
       this.detection = clamp(this.detection + dt * rate, 0, 1);

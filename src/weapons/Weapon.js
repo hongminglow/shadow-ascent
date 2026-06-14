@@ -105,6 +105,9 @@ export class Weapon {
     game.particles.muzzleFlash(_muzzleWorld, _ray.ray.direction);
     game.audio.gunshot(this.isSniper ? 'sniper' : 'pistol');
 
+    // Gunfire is loud — nearby enemies investigate (but it doesn't alert the whole floor).
+    game.makeNoise(player.position, this.isSniper ? 26 : 13);
+
     // Recoil kicks the camera up; sniper kicks harder.
     player.addRecoil(this.recoilKick);
     game.shake(this.isSniper ? 0.5 : 0.18);
@@ -160,6 +163,10 @@ export class Weapon {
       this._kick * 0.05;
     this.viewModel.position.z = damp(this.viewModel.position.z, target.z + this._kick * 0.12, 12, dt);
     this.viewModel.rotation.x = -this._kick * 0.35;
+
+    // While scoped, hide the gun model — at sniper FOV it magnifies hugely and bleeds
+    // around the scope overlay. Tracers still fire from the muzzle's world position.
+    this.viewModel.visible = !(this.isSniper && this.aimed);
   }
 
   setAimed(v) {

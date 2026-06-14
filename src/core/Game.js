@@ -45,6 +45,7 @@ export class Game {
     this.stairUnlocked = false;
     this.exitPad = null;
     this.padPulse = 0;
+    this.spawnGrace = 0;
     this.trauma = 0;
 
     this.onWin = null;
@@ -91,6 +92,7 @@ export class Game {
     this.stairUnlocked = false;
     this.alarmActive = false;
     this.alarmTimer = 0;
+    this.spawnGrace = 2.0; // brief grace so you're not detected the instant you spawn
     this.audio.alarmOff();
     this.hud.setAlarm(false);
     this.hud.setScope(false);
@@ -157,6 +159,27 @@ export class Game {
     for (const t of this.threats) {
       if (t.alive && t.alertTo) t.alertTo(pos);
     }
+    if (this.vip) this.vip.panic();
+  }
+
+  // A guard engages on sight: flash the cue and shout to nearby guards only.
+  onGuardEngage(guard) {
+    this.hud.spotted();
+    this.notifyLocal(guard.lastKnown, 12, guard);
+    if (this.vip) this.vip.panic();
+  }
+
+  // Alert any guards/drones within `radius` of a position (a shout or a gunshot).
+  notifyLocal(pos, radius, source = null) {
+    for (const t of this.threats) {
+      if (!t.alive || t === source || !t.alertTo) continue;
+      if (dist2D(pos.x, pos.z, t.x, t.z) <= radius) t.alertTo(pos);
+    }
+  }
+
+  // Gunfire is loud — nearby enemies investigate the source.
+  makeNoise(pos, radius) {
+    this.notifyLocal(pos, radius);
     if (this.vip) this.vip.panic();
   }
 
@@ -294,6 +317,8 @@ export class Game {
   // ---------------- per-frame ----------------
   update(dt) {
     if (this.state !== 'playing') return;
+
+    if (this.spawnGrace > 0) this.spawnGrace -= dt;
 
     this.player.update(dt, this.input, this.walls);
 

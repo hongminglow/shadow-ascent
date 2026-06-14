@@ -93,7 +93,7 @@ export class SecurityCamera {
 
     if (this.alarmCooldown > 0) this.alarmCooldown -= dt;
 
-    if (vis.seen && player.alive) {
+    if (vis.seen && player.alive && game.spawnGrace <= 0) {
       this.detection = clamp(this.detection + dt * 1.4, 0, 1);
       this._setLed(this.detection >= 1 ? 0xff2a2a : 0xffcc33);
       if (this.detection >= 1 && this.alarmCooldown <= 0) {

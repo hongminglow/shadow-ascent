@@ -93,7 +93,7 @@ export class Drone {
 
     if (this.alarmCooldown > 0) this.alarmCooldown -= dt;
 
-    if (vis.seen && player.alive) {
+    if (vis.seen && player.alive && game.spawnGrace <= 0) {
       this.detection = clamp(this.detection + dt * 1.8, 0, 1);
       this.lastKnown = { x: player.position.x, z: player.position.z };
       if (this.detection >= 1) {
